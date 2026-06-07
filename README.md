@@ -174,6 +174,3 @@ original PDF, support for `.docx`/`.txt`/web pages, and caching of embeddings.
 
 ---
 
-## 📝 License
-
-MIT — free to use and modify.
