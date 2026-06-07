@@ -126,16 +126,6 @@ The app opens at `http://localhost:8501`.
 
 ---
 
-## 📸 Screenshots
-
-> Add your own screenshots here after running the app.
-
-| Chat interface | Sources expander |
-| -------------- | ---------------- |
-| _add screenshot_ | _add screenshot_ |
-
----
-
 ## 🛠️ Configuration Notes
 
 - **Chunking:** `RecursiveCharacterTextSplitter`, `chunk_size=1000`,
