@@ -161,6 +161,5 @@ Want to make this project stand out? Here are four high-impact extensions:
 
 Bonus ideas: conversation summarisation memory, citation highlighting in the
 original PDF, support for `.docx`/`.txt`/web pages, and caching of embeddings.
-
 ---
 
