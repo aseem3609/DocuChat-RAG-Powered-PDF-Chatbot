@@ -1,17 +1,3 @@
-"""
-app.py
-------
-Streamlit chat interface for the RAG chatbot.
-
-Features:
-- Upload one or multiple PDFs from the sidebar.
-- "Process Documents" button: chunk -> embed -> store in Chroma.
-- Chat interface with streaming responses.
-- Conversation memory that persists for the session.
-- "Clear chat" button.
-- Toggle between Claude (Anthropic) and GPT-4o (OpenAI).
-- "Sources" expander showing the chunks + page numbers behind each answer.
-"""
 
 import os
 
@@ -29,9 +15,7 @@ from utils import (
     split_documents,
 )
 
-# ---------------------------------------------------------------------------
-# Page configuration
-# ---------------------------------------------------------------------------
+
 st.set_page_config(
     page_title="RAG Chatbot",
     page_icon="🤖",
@@ -40,9 +24,7 @@ st.set_page_config(
 )
 
 
-# ---------------------------------------------------------------------------
-# Session state initialisation
-# ---------------------------------------------------------------------------
+
 def init_session_state() -> None:
     """Set up all the session-state keys we rely on (once per session)."""
     defaults = {
@@ -61,9 +43,7 @@ def init_session_state() -> None:
 init_session_state()
 
 
-# ---------------------------------------------------------------------------
-# Sidebar: settings + document upload/processing
-# ---------------------------------------------------------------------------
+
 with st.sidebar:
     st.title("⚙️ Settings")
 
@@ -94,7 +74,7 @@ with st.sidebar:
         help="How many document chunks to feed the model as context.",
     )
 
-    # --- Generation setting -------------------------------------------------
+
     temperature = st.slider(
         "Temperature",
         min_value=0.0,
@@ -104,7 +84,7 @@ with st.sidebar:
         help="Lower = more factual/deterministic. Higher = more creative.",
     )
 
-    # --- Advanced chunking controls ----------------------------------------
+
     with st.expander("🔧 Advanced chunking"):
         chunk_size = st.slider(
             "Chunk size",
@@ -133,8 +113,8 @@ with st.sidebar:
         accept_multiple_files=True,
     )
 
-    # --- Process documents button ------------------------------------------
-    if st.button("🚀 Process Documents", use_container_width=True):
+
+    if st.button(" Process Documents", use_container_width=True):
         if not uploaded_files:
             st.warning("Please upload at least one PDF first.")
         else:
@@ -160,7 +140,7 @@ with st.sidebar:
             except Exception as exc:  # noqa: BLE001 - surface any error to the UI
                 st.error(f"Failed to process documents: {exc}")
 
-    # --- Try to reuse a previously persisted store -------------------------
+
     if not st.session_state.documents_processed:
         existing = load_vectorstore(embed_provider=embed_provider)
         if existing is not None:
@@ -168,7 +148,7 @@ with st.sidebar:
             st.session_state.documents_processed = True
             st.info("Loaded an existing document index from disk.")
 
-    # --- Knowledge base status ---------------------------------------------
+   
     if st.session_state.documents_processed:
         st.success("✅ Knowledge base ready")
         if st.session_state.processed_files:
@@ -182,8 +162,7 @@ with st.sidebar:
 
     st.divider()
 
-    # --- Chat actions: export + clear + reset ------------------------------
-    # Export the current conversation as a downloadable Markdown transcript.
+  
     if st.session_state.messages:
         transcript = "\n\n".join(
             f"**{m['role'].capitalize()}:** {m['content']}"
@@ -197,14 +176,12 @@ with st.sidebar:
             use_container_width=True,
         )
 
-    # --- Clear chat button --------------------------------------------------
-    if st.button("🗑️ Clear chat", use_container_width=True):
+    if st.button(" Clear chat", use_container_width=True):
         st.session_state.messages = []
         st.session_state.chat_history = []
         st.rerun()
 
-    # --- Reset knowledge base (delete the persisted Chroma store) ----------
-    if st.button("💣 Reset knowledge base", use_container_width=True):
+    if st.button(" Reset knowledge base", use_container_width=True):
         reset_vectorstore()
         st.session_state.vectorstore = None
         st.session_state.documents_processed = False
@@ -216,9 +193,6 @@ with st.sidebar:
         st.rerun()
 
 
-# ---------------------------------------------------------------------------
-# Main area: header + chat
-# ---------------------------------------------------------------------------
 st.title("🤖 RAG Chatbot")
 st.caption(
     "Ask questions about your uploaded PDFs. Answers are grounded in your "
@@ -239,23 +213,19 @@ for message in st.session_state.messages:
                     )
 
 
-# ---------------------------------------------------------------------------
-# Chat input + response generation
-# ---------------------------------------------------------------------------
 user_question = st.chat_input("Ask a question about your documents...")
 
 if user_question:
-    # Guard: make sure documents have been processed.
+    
     if not st.session_state.documents_processed or st.session_state.vectorstore is None:
         st.warning("Please upload and process documents before chatting.")
         st.stop()
 
-    # 1. Show the user's message immediately.
+
     st.session_state.messages.append({"role": "user", "content": user_question})
     with st.chat_message("user"):
         st.markdown(user_question)
 
-    # 2. Generate and stream the assistant's answer.
     with st.chat_message("assistant"):
         try:
             llm = get_llm(provider=llm_provider, temperature=temperature)
@@ -276,7 +246,7 @@ if user_question:
                 )
             )
 
-            # 3. Build a compact, serialisable list of sources for the UI.
+            
             sources = [
                 {
                     "source": doc.metadata.get("source", "unknown"),
@@ -295,12 +265,12 @@ if user_question:
                             f"> {src['snippet']}"
                         )
 
-            # 5. Persist the assistant message + sources for re-rendering.
+            
             st.session_state.messages.append(
                 {"role": "assistant", "content": response, "sources": sources}
             )
 
-            # 6. Update the LLM-facing chat history (for follow-up questions).
+            
             st.session_state.chat_history.append(HumanMessage(content=user_question))
             st.session_state.chat_history.append(AIMessage(content=response))
 
